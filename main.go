@@ -6,6 +6,7 @@ import (
 	"go/format"
 	"os"
 	"strings"
+	"text/template"
 
 	_ "github.com/lib/pq"
 	"github.com/serenize/snaker"
@@ -26,18 +27,20 @@ var typeMap = map[string]string{
 	"timestamp without time zone|YES": "sql.NullTime",
 }
 
-var helpTemplate = `
+var helpTemplate = template.Must(template.New("help").Parse(`
 usage:
-	%s <connection_string>
+	{{.name}} <connection_string>
 
 example:
-	%s 'dbname=example sslmode=disable'
+	{{.name}} 'dbname=example sslmode=disable'
 
-`
+`))
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, helpTemplate, os.Args[0], os.Args[0])
+		helpTemplate.Execute(os.Stderr, map[string]interface{}{
+			"name": os.Args[0],
+		})
 		os.Exit(1)
 	}
 
